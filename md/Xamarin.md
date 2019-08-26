@@ -1,7 +1,5 @@
-# 第0章
-
-# 第1章 アプリを作るための準備
-## 1.1 開発環境を整える
+# アプリを作るための準備
+## 開発環境を整える
 ### 1.1.1 PC側での準備
 Androidのアプリを作ろうと思うと，今は色々な環境を選択することができる．
 Javaとか，Kotlinとか，もしかしたらCocoaとかも聞いたことがあるかもしれない．
@@ -24,28 +22,35 @@ Javaとか，Kotlinとか，もしかしたらCocoaとかも聞いたことが�
 
 ## 1.2
 
-# 第2章 初めてのAndroidアプリケーション
-## 2.1 プロジェクトの作成
+# 初めてのAndroidアプリケーション
+## プロジェクトの作成
 第1章で開発環境の作成を終えたら，早速Androidアプリの作成に挑戦してみたいと思う．  
-![形式の選択](img/2-1-1.png "形式の選択")  
+![形式の選択](img/2-1-1.png "形式の選択")
 ![構成:アプリ](img/2-1-2.png "構成：アプリ")
 ![構成:プロジェクト](img/2-1-3.png "構成：プロジェクト")
 プロジェクトが出来上がったら，まずは何も考えずに実行してみよう．
 
 
-## 2.2 出力されたコードを見てみる
+## 出力されたコードを見てみる
 勝手に作られたプログラムをじっくりとみていこう．
 
-`Resources/layout/activity_main.xml`というファイルがあるかと思う．これがアプリのレイアウトを決めているファイルだ．
-```xml
+`Resources/layout/activity_main.xml`というファイルがあるかと思う．これがアプリのレイアウトを決めているファイルだ．  
+
+```
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="match_parent">
+<RelativeLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent">
 </RelativeLayout>
 ```
 
 それともう一つ，`MainActivity.cs`を見てみよう．  
-あとで詳しく解説するが，Androidアプリには`Activity`という動作単位が存在する，このファイルにはそんなActivityの動作を決める記述がなされている．
-```C#
+あとで詳しく解説するが，Androidアプリには`Activity`という動作単位が存在する，このファイルにはそんなActivityの動作を決める記述がなされている．  
+
+```
 using Android.App;
 using Android.OS;
 using Android.Support.V7.App;
@@ -53,7 +58,9 @@ using Android.Runtime;
 using Android.Widget;
 
 namespace test {
- [Activity(Label = "@string/app_name", Theme = "@style/AppTheme", MainLauncher = true)]
+ [Activity(Label = "@string/app_name",
+  Theme = "@style/AppTheme",
+  MainLauncher = true)]
  public class MainActivity : AppCompatActivity {
   protected override void OnCreate(Bundle savedInstanceState) {
    base.OnCreate(savedInstanceState);
@@ -63,14 +70,19 @@ namespace test {
   }
 
   // (2)
-  public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults) {
-   Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+  public override void OnRequestPermissionsResult(int requestCode,
+     string[] permissions,
+     [GeneratedEnum] Android.Content.PM.Permission[] grantResults) {
+   Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, 
+        permissions, 
+        grantResults);
 
-   base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+   base.OnRequestPermissionsResult(requestCode, 
+        permissions, 
+        grantResults);
   }
  }
 }
-
 ```  
 
 **(1)** では，アプリケーションのレイアウトを設定している．  
@@ -82,20 +94,20 @@ namespace test {
 次回以降の章では，このアプリケーションに手を加えてアプリらしいアプリを作るための技術を磨いていこう．
 
 
-# 第3章 データの入出力
-## 3.1 出力するための手段
+# データの入出力
+## 出力するための手段
 ### 3.1.1 TextView
 画面に情報を表示する際，TextViewは有用な手段であると言える．  
 まずはレイアウトファイルとそれに付随するプログラムを見て欲しい．
 
-```xml
+```
 <TextView 
   androud:id="@+id/textview1"
   android:text="これはTextViewです"
 />
 ```
 
-```C#
+```
   var tv = FindViewById<TextView>(Resource.Id.textview1);
   tv.text = "テキストを変更しました";
 ```
@@ -105,29 +117,35 @@ namespace test {
 ### 3.1.3 Toast通知  
 ボタンを押した時とかに，何かしらの情報が画面下にポップアップ表示されるような経験は誰しもがしたことがあるだろう．その時に現れるポップアップ表示のことをToast通知という．  
 Toast通知の表示のさせ方を見てみよう
-```C#
-  Toast.MakeText(ApplicationContext, "Toast通知", ToastLength.Short).Show();
+
+```
+  Toast.MakeText(ApplicationContext,
+       "Toast通知", 
+       ToastLength.Short).Show();
 ```
 このように記述するだけでデータをポップアップ表示することができるので，ぜひ知っておいて欲しい．  
 また，Toastの表示スタイルは様々な形式にカスタムすることができる．
 
 ### 3.1.4 通知バー
 
-## 3.2 入力するための手段
+## 入力するための手段
 ### 3.2.1 Button
 何かしらのアクションのトリガーとして非常に有用な手段であるボタンの実装について解説する．  
 まずは，サンプルコードを見て欲しい
-```xml
+
+```
 <Button
   android:id="@+id/button1"
   android:text="押してみてね"
 />
 ```
 
-```C#
+```
   var button = FindViewById<Button>(Resource.Id.button1);
   button.Click += (sender, e) => {
-    Toast.MakeText(ApplicationContext, "ボタンが押されたよ", ToastLength.Short).Show();
+    Toast.MakeText(ApplicationContext,
+         "ボタンが押されたよ", 
+         ToastLength.Short).Show();
   };
 ```
 
@@ -139,30 +157,30 @@ Toast通知の表示のさせ方を見てみよう
 
 ### 3.2.5 Toggle Button
 
-# 第4章 ハードウェアの利用
-## 4.1 センサー
+# ハードウェアの利用
+## センサー
 ### 4.1.1 加速度センサー
 
 ### 4.1.2 ジャイロセンサー
 
 ### 4.1.3 近接センサー
 
-## 4.2 GPS : Global Positioning System
+## GPS : Global Positioning System
 位置情報を使ったアプリケーションを作ろうと思った場合，GPSの利用は必要不可欠であると言える．そこで，本章ではGPSの使用方法について解説したいと思う．  
 
-## 4.2.1 GPSの有効化
+### 4.2.1 GPSの有効化
 
-## 4.3 カメラ
+## カメラ
 
-## 4.4 NFC : Near Field Communication
+## NFC : Near Field Communication
 
-## 4.5 ストレージの利用
+## ストレージの利用
 
 
-# 第5章 様々なActivity
-## 5.1 Activityのライフサイクル
+# 様々なActivity
+## Activityのライフサイクル
 
-## 5.2 Activityの遷移
+## Activityの遷移
 ### 5.2.1 データの受け渡しをしない場合
 
 ### 5.2.2 データの受け渡しをする場合
@@ -176,21 +194,21 @@ Toast通知の表示のさせ方を見てみよう
 
 ### 暗黙的Intent
 
-# 第6章 Background Service
+# Background Service
 
-# 第7章 Design Support Libraryを使う
+# Design Support Libraryを使う
 
-## 7.1 TabbedLayoutなアプリケーション
+## TabbedLayoutなアプリケーション
 本節では，Tabbed Layoutなアプリケーションの作り方を解説していく．
 ### 7.1.1 Fragmentの実装
 ### 7.1.2 Adapterの実装
 ### 7.1.3 AdapterとLayoutの紐付け
 
-## 7.2 Swipe Refresh Layout
+## Swipe Refresh Layout
 某SNSとかで，下にスワイプして手を離した時にクルクルしたものが表示されるのを見たことがあるかと思う．  
 本節ではそのような機能の実装に挑戦してみたいと思う．
 
 # 第8章 Android Support Libraryを使う
-## 8.1 ToolBar
+## ToolBar
 
 # あとがき
