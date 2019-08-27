@@ -1,0 +1,28 @@
+---
+install:
+  - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
+  - bundle install
+
+build: off
+
+test_script:
+  - bundle exec rake test
+
+before_test:
+  - ruby -v
+  - gem -v
+  - bundle -v
+
+artifacts:
+  - path: pkg\*.gem
+
+environment:
+  matrix:
+    - ruby_version: "21"
+    - ruby_version: "21-x64"
+    - ruby_version: "22"
+    - ruby_version: "22-x64"
+    - ruby_version: "23"
+    - ruby_version: "23-x64"
+
+skip_branch_with_pr: true

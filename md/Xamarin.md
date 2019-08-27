@@ -1,214 +1,159 @@
-# アプリを作るための準備
-## 開発環境を整える
-### 1.1.1 PC側での準備
-Androidのアプリを作ろうと思うと，今は色々な環境を選択することができる．
-Javaとか，Kotlinとか，もしかしたらCocoaとかも聞いたことがあるかもしれない．
+# Xamarinってなぁに
+はい，いきなりサブタイ回収しました．  
+Xamarinっていうのは，Androidなら`Java`もしくは`Kotlin`のコードを，iOSなら`Swift`のコードをラッピングして`C#`を用いて開発することのできるフレームワークです.  
+こいつを使うことで，各OS間でのロジックに関するコードを共通化することができるってわけなんですね．
 
-今回は，C#を用いてAndroidを開発することのできる`Xamarin`というフレームワークに焦点を合わせてみたいと思う．  
-`Xamarin`というのは，Androidアプリを作る上で欠かすことのできない`Android SDK`をC#でも使えるようにしたもの．  
-この，`Xamarin`というフレームワークは`Visual Studio`を使って開発することができる．  
-以降，インストールの手順を見ていきたいと思う.  
-~~正直なところこんな節はなくてもいいんじゃないかなぁなんて思ってたり~~
-![](img/1-1-1-1.png)
-![](img/1-1-1-2.png)
-![](img/1-1-1-3.png)
-![](img/1-1-1-4.png)
-![](img/1-1-1-5.png)
-![](img/1-1-1-6.png)
+さらにさらに，(ちょいと制限があるけど)UIすらも共通化することも可能です．
 
-### 1.1.2 端末側での準備
-実機でAndroidアプリの開発を行おうと思うと，`開発者向けオプション`を選択できるようにしなければいけない．  
-**端末設定 > システム > 端末情報**と進んで**ビルド番号**を7回タップすると，**端末設定 > システム**に`開発者向けオプション`という項目が追加されるはずだ．
+とりあえず実際にアプリをいくつか作っていきながらXamarinでの開発に慣れていきましょうね．  
+そうそう，今回はAndroidアプリに関してのみ触れたいと思います．
 
-## 1.2
+そうそう，本著ではXamarinの導入方法とかプロジェクトの作成方法は解説しないことにします．  
+めんどくさいんだもん．
 
-# 初めてのAndroidアプリケーション
-## プロジェクトの作成
-第1章で開発環境の作成を終えたら，早速Androidアプリの作成に挑戦してみたいと思う．  
-![形式の選択](img/2-1-1.png "形式の選択")
-![構成:アプリ](img/2-1-2.png "構成：アプリ")
-![構成:プロジェクト](img/2-1-3.png "構成：プロジェクト")
-プロジェクトが出来上がったら，まずは何も考えずに実行してみよう．
+# キッチンタイマー
+まず手始めに定番とも言えるキッチンタイマーを作ってみましょう．  
+キッチンタイマーにはどのような機能が必要でしょうか．
 
+- タイマーをスタートする
+- 終了時に知らせる
 
-## 出力されたコードを見てみる
-勝手に作られたプログラムをじっくりとみていこう．
+本当に最低限の要求仕様はこのくらいではないでしょうか.  
+てことで開発に移っていきましょう！
 
-`Resources/layout/activity_main.xml`というファイルがあるかと思う．これがアプリのレイアウトを決めているファイルだ．  
+## レイアウトを実装する
+まずは，アプリのレイアウトを決めましょう．プロジェクトを作成した時に`activity_main.xml`というファイルが作成されると思うので，そちらをいじっていきましょう．  
+ここはシンプルに`TextView`と`Button`でいこうではありませんか. 
 
-```
+```activity_main.xml:xml
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  xmlns:app="http://schemas.android.com/apk/res-auto"
-  xmlns:tools="http://schemas.android.com/tools"
-  android:layout_width="match_parent"
-  android:layout_height="match_parent">
+ xmlns:android="http://schemas.android.com/apk/res/android"
+ xmlns:app="http://schemas.android.com/apk/res-auto"
+ xmlns:tools="http://schemas.android.com/tools"
+ android:layout_width="match_parent"
+ android:layout_height="match_parent">
+ <TextView
+  android:layout_width="wrap_content"
+  android:layout_height="wrap_content"
+  android:id="@+id/remains"
+  android:textAppearance="?android:attr/textAppearanceLarge"
+  android:textSize="80sp"
+  android:text="03:00"
+  android:layout_centerInParent="true"
+  />
+ <Button
+  android:layout_width="wrap_content"
+  android:layout_height="wrap_content"
+  android:id="@+id/start"
+  android:text="start"
+  android:layout_below="@id/remains"
+  android:layout_centerHorizontal="true"/>
 </RelativeLayout>
 ```
 
-それともう一つ，`MainActivity.cs`を見てみよう．  
-あとで詳しく解説するが，Androidアプリには`Activity`という動作単位が存在する，このファイルにはそんなActivityの動作を決める記述がなされている．  
+## プログラムを書いていこう
+最低限キッチンタイマー的な動作をするプログラムを書いてみよう．  
+先ほどの要件定義を満たすために，カウントダウン機構とスタート動作，ビープ音の生成・発音機能を実装していく．
 
-```
+
+```MainActivity.cs:CS
+using System;
 using Android.App;
 using Android.OS;
-using Android.Support.V7.App;
 using Android.Runtime;
+using Android.Support.Design.Widget;
+using Android.Support.V7.App;
+using Android.Views;
 using Android.Widget;
+using Android.Media;
 
-namespace test {
- [Activity(Label = "@string/app_name",
-  Theme = "@style/AppTheme",
-  MainLauncher = true)]
+namespace KitchenTimer {
+ [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true)]
  public class MainActivity : AppCompatActivity {
+
+  private int sec_ = 180;
+
+  Handler handler_;
+  TextView tv_;
+  AudioTrack audio_;
+
+  // Beep音用の変数群
+  const double amplification_ = 0.4;
+  const int sampleRate_ = 44100; // [samples / sec]
+  const short bitRate_ = 16; // [bits / sec]
+  const short freq_ = 440; // [Hz] = [1 / sec]
+  const double duration_ = 0.5; // [sec]
+  short[] audioBuf_;
+
   protected override void OnCreate(Bundle savedInstanceState) {
    base.OnCreate(savedInstanceState);
    Xamarin.Essentials.Platform.Init(this, savedInstanceState);
-   // Set our view from the "main" layout resource
-   SetContentView(Resource.Layout.activity_main);  // (1)
+   SetContentView(Resource.Layout.activity_main);
+
+   handler_ = new Handler();
+
+   // 時間を表示させるviewの取得
+   tv_ = FindViewById<TextView>(Resource.Id.remains);
+
+   // Buttonのクリック動作を設定
+   // どうせ保持していても使わないので直接構築
+   FindViewById<Button>(Resource.Id.start)
+    .Click += (sender, e) => {
+     handler_.PostDelayed(() => Action(), 1000);
+    };
   }
 
-  // (2)
-  public override void OnRequestPermissionsResult(int requestCode,
-     string[] permissions,
-     [GeneratedEnum] Android.Content.PM.Permission[] grantResults) {
-   Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, 
-        permissions, 
-        grantResults);
+  protected override void OnResume() {
+   base.OnResume();
 
-   base.OnRequestPermissionsResult(requestCode, 
-        permissions, 
-        grantResults);
+   // [samples / sec] * [sec] = [samples]
+   int samples = (int)(sampleRate_ * duration_); 
+   audioBuf_ = new short[samples];
+
+   // Beep音の生成
+   for(int point = 0;point < samples;point++) {
+    // pointの最大値はsamplesと同値．すなわち発音時間でのsample数
+    // すなわち，point / sampleRate_は時間位置(time / freq)と等価的存在
+    audioBuf_[point] = (short)((amplification_ * short.MaxValue) *
+     System.Math.Sin(2.0 * System.Math.PI * freq_ * point / sampleRate_));
+   }
+
+   audio_ = new AudioTrack(Stream.Music,
+               sampleRate_,
+               ChannelOut.Mono,
+               Encoding.Pcm16bit,
+               audioBuf_.Length * bitRate_ / 8,
+               AudioTrackMode.Static);
+   audio_.Write(audioBuf_, 0, audioBuf_.Length);
+  }
+
+  void Action() {
+   handler_.RemoveCallbacks(Action);
+   sec_--;
+
+   if(sec_ > 0)
+    handler_.PostDelayed(Action, 1000);
+   else
+    Beep();
+
+   // この関数が別スレッドで動いているので，
+   // UIスレッドを明示的に指定
+   RunOnUiThread(() => {
+    tv_.Text = (sec_ / 60).ToString("D2") +
+    ":" +
+    (sec_ % 60).ToString("D2");
+   });
+
+  }
+
+  void Beep() {
+   audio_.Stop();
+   audio_.ReloadStaticData();
+   audio_.Play();
   }
  }
 }
-```  
 
-**(1)** では，アプリケーションのレイアウトを設定している．  
-自動生成されたアプリケーションでは`Resources/layout/activity_main.axml`で定義されている．  
-**(2)** では，Android6から実装されたいわゆる**Mパーミッション**に関する設定を行うためのコールバックである．  
-今回は特に気にしなくても良い．必要になったら説明したいと思う．  
-
-さて，自動生成されたプログラムを実行したところで特に何が表示されるわけでもなく，タイトルと白い画面のみのアプリだったことだろう．  
-次回以降の章では，このアプリケーションに手を加えてアプリらしいアプリを作るための技術を磨いていこう．
-
-
-# データの入出力
-## 出力するための手段
-### 3.1.1 TextView
-画面に情報を表示する際，TextViewは有用な手段であると言える．  
-まずはレイアウトファイルとそれに付随するプログラムを見て欲しい．
 
 ```
-<TextView 
-  androud:id="@+id/textview1"
-  android:text="これはTextViewです"
-/>
-```
-
-```
-  var tv = FindViewById<TextView>(Resource.Id.textview1);
-  tv.text = "テキストを変更しました";
-```
-
-### 3.1.2 Progress Bar
-
-### 3.1.3 Toast通知  
-ボタンを押した時とかに，何かしらの情報が画面下にポップアップ表示されるような経験は誰しもがしたことがあるだろう．その時に現れるポップアップ表示のことをToast通知という．  
-Toast通知の表示のさせ方を見てみよう
-
-```
-  Toast.MakeText(ApplicationContext,
-       "Toast通知", 
-       ToastLength.Short).Show();
-```
-このように記述するだけでデータをポップアップ表示することができるので，ぜひ知っておいて欲しい．  
-また，Toastの表示スタイルは様々な形式にカスタムすることができる．
-
-### 3.1.4 通知バー
-
-## 入力するための手段
-### 3.2.1 Button
-何かしらのアクションのトリガーとして非常に有用な手段であるボタンの実装について解説する．  
-まずは，サンプルコードを見て欲しい
-
-```
-<Button
-  android:id="@+id/button1"
-  android:text="押してみてね"
-/>
-```
-
-```
-  var button = FindViewById<Button>(Resource.Id.button1);
-  button.Click += (sender, e) => {
-    Toast.MakeText(ApplicationContext,
-         "ボタンが押されたよ", 
-         ToastLength.Short).Show();
-  };
-```
-
-### 3.2.2 Text
-
-### 3.2.3 CheckBox
-
-### 3.2.4 SeekBar
-
-### 3.2.5 Toggle Button
-
-# ハードウェアの利用
-## センサー
-### 4.1.1 加速度センサー
-
-### 4.1.2 ジャイロセンサー
-
-### 4.1.3 近接センサー
-
-## GPS : Global Positioning System
-位置情報を使ったアプリケーションを作ろうと思った場合，GPSの利用は必要不可欠であると言える．そこで，本章ではGPSの使用方法について解説したいと思う．  
-
-### 4.2.1 GPSの有効化
-
-## カメラ
-
-## NFC : Near Field Communication
-
-## ストレージの利用
-
-
-# 様々なActivity
-## Activityのライフサイクル
-
-## Activityの遷移
-### 5.2.1 データの受け渡しをしない場合
-
-### 5.2.2 データの受け渡しをする場合
-
-### 5.2.3 外部のアプリケーションを呼び出す
-例えばリンクをクリックした時，勝手にブラウザが立ち上がったり，はたまたどのブラウザを使用するか選択させられたりといった経験はあるのではないだろうか．  
-このように外部のアプリケーションを立ち上げるのは，一種のActivity遷移に分類されると筆者は考えている．  
-そこで，外部のアプリケーションを呼び出す方法をいくつか紹介する．
-
-### 明示的Intent
-
-### 暗黙的Intent
-
-# Background Service
-
-# Design Support Libraryを使う
-
-## TabbedLayoutなアプリケーション
-本節では，Tabbed Layoutなアプリケーションの作り方を解説していく．
-### 7.1.1 Fragmentの実装
-### 7.1.2 Adapterの実装
-### 7.1.3 AdapterとLayoutの紐付け
-
-## Swipe Refresh Layout
-某SNSとかで，下にスワイプして手を離した時にクルクルしたものが表示されるのを見たことがあるかと思う．  
-本節ではそのような機能の実装に挑戦してみたいと思う．
-
-# 第8章 Android Support Libraryを使う
-## ToolBar
-
-# あとがき
