@@ -53,25 +53,22 @@ Xamarinっていうのは，Androidなら`Java`もしくは`Kotlin`のコード�
 ```
 
 ## プログラムを書いていこう
-最低限キッチンタイマー的な動作をするプログラムを書いてみよう．  
-先ほどの要件定義を満たすために，カウントダウン機構とスタート動作，ビープ音の生成・発音機能を実装していく．
+最低限キッチンタイマー的な動作をするプログラムを書いて見ましょう．．  
+先ほどの要件定義を満たすために，カウントダウン機構とスタート動作，ビープ音の生成・発音機能を実装していくことにします．
 
 
 ```MainActivity.cs:CS
-using System;
 using Android.App;
-using Android.OS;
-using Android.Runtime;
-using Android.Support.Design.Widget;
-using Android.Support.V7.App;
-using Android.Views;
-using Android.Widget;
 using Android.Media;
+using Android.OS;
+using Android.Support.V7.App;
+using Android.Widget;
 
 namespace KitchenTimer {
  [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true)]
  public class MainActivity : AppCompatActivity {
 
+  // 残り秒数
   private int sec_ = 180;
 
   Handler handler_;
@@ -93,17 +90,22 @@ namespace KitchenTimer {
 
    handler_ = new Handler();
 
+   // (1)
    // 時間を表示させるviewの取得
    tv_ = FindViewById<TextView>(Resource.Id.remains);
 
+   // (2)
    // Buttonのクリック動作を設定
    // どうせ保持していても使わないので直接構築
+   // 1000ミリ秒経過後にタスクを実行するように設定しているぞ
    FindViewById<Button>(Resource.Id.start)
     .Click += (sender, e) => {
      handler_.PostDelayed(() => Action(), 1000);
     };
   }
 
+  /// @brief : Resume時に呼び出されるhook
+  /// @return : None
   protected override void OnResume() {
    base.OnResume();
 
@@ -111,6 +113,7 @@ namespace KitchenTimer {
    int samples = (int)(sampleRate_ * duration_); 
    audioBuf_ = new short[samples];
 
+   // (3)
    // Beep音の生成
    for(int point = 0;point < samples;point++) {
     // pointの最大値はsamplesと同値．すなわち発音時間でのsample数
@@ -128,6 +131,10 @@ namespace KitchenTimer {
    audio_.Write(audioBuf_, 0, audioBuf_.Length);
   }
 
+
+  // (4)
+  /// @brief : 一定時間ごとに行うタスク
+  /// @return : None
   void Action() {
    handler_.RemoveCallbacks(Action);
    sec_--;
@@ -137,6 +144,7 @@ namespace KitchenTimer {
    else
     Beep();
 
+   // (5)
    // この関数が別スレッドで動いているので，
    // UIスレッドを明示的に指定
    RunOnUiThread(() => {
@@ -147,6 +155,8 @@ namespace KitchenTimer {
 
   }
 
+  ///  @brief  : Beep音を鳴らす
+  ///  @return : None
   void Beep() {
    audio_.Stop();
    audio_.ReloadStaticData();
@@ -155,3 +165,23 @@ namespace KitchenTimer {
  }
 }
 ```
+
+**(1)**, **(2)** ではそれぞれのコントロールを取得してます．  
+両者を比べてみれば一目瞭然ですが，**(1)** ではインスタンスを生成しているのに対して **(2)** では，生成せずに直接操作をしてます．  
+別に，以降もそのコントロールを使用するなら保存しておけばいいですし，その場限りでしか操作しないなら直接構築してあげればいいかなと思います．  
+そしてそして，**Xamarinでは，コントロールのアクションはラムダ式で登録できる** のです！！！  
+**(3)** では，カウント終了時に鳴らす音声を生成しています．  
+思いっきり高校物理の波動の分野ですね．覚えてますか？？笑  
+**(4)** の`Action`という関数は，ボタンクリック時に1000[ms]遅延で実行するタスク，つまりタイマーカウントを担っています，遅延動作をネストしたかったのでわざわざ関数化しました．  
+**(5)** の部分は，タイマーの残り時間をフォアグラウンドで実行するためのコードです．`RunOnUiThread()`を用いる事で，UIの更新をスレッドセーフ(?)に行うことができるのです．  
+
+さて，これだけで本当に簡単なキッチンタイマーができてしまいました．  
+しかしながらこれでは，スタートしてカウント終了したらそれっきりです．これでは使い物になりませんよね．  
+て事で，こいつに機能をじゃんじゃん追加していって本格的なキッチンタイマーを作っていくこととしましょう．  
+
+## 機能を追加する
+### リセット機能
+### 任意の時間を指定
+### 一時停止機能
+### 最近使用したタイマー
+### UIをカッコよくする
