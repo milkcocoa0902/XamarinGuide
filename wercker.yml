@@ -1,0 +1,17 @@
+box: koron0902/cocoas-lab-invironment
+
+build:
+  steps:
+    - script:
+      name: move to Re:View directory
+      code: |
+        cd review
+
+    - script:
+      name: create Re:View from Markdown
+      code: |
+        ./md2review ../md/Xamarin.md > main.re
+
+    - script:
+      name: convert Re:View to pdf
+      code: review-pdfmaker config.yml
